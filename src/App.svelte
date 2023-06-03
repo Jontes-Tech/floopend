@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { randpix, RandpixColorScheme, Symmetry } from "randpix";
+  import { slide } from "svelte/transition";
   interface LoopResponse {
     limit: number;
     page: number;
@@ -24,6 +26,8 @@
     loops: [],
   };
   let playing = "";
+  let lastplayed = "";
+  let player: HTMLAudioElement;
   let instrument =
     new URLSearchParams(window.location.search).get("instrument") || "";
 
@@ -47,23 +51,45 @@
         response = res;
       });
   }
+
+  $: if (playing !== "") {
+    const generate = randpix({
+      colorScheme: RandpixColorScheme.DARKULA, // Color theme (default: NEUTRAL)
+      size: 8, // Art size. Recommended 7 or 8 (odd/even symmetry) (default: 8)
+      scale: 32, // Pixel scale (default: 1)
+      symmetry: Symmetry.VERTICAL, // Symmetry (default: VERTICAL)
+      color: [255, 100, 50], // [R, G, B] like color for solid art (default: undefined),
+      seed: playing, // Seed (default: undefined)
+      colorBias: 15, // Slightly changes the color hue, which adds more color to the image (default: undefined)
+      grayscaleBias: false, // Change only the brightness of the color instead of the hue (default: undefined)
+    });
+
+    const art = generate(); // Generating the pixel art
+    const dataURL = art.toDataURL();
+    setTimeout(() => {
+      const img = document.getElementById("art") as HTMLImageElement;
+      img.src = dataURL;
+      img.alt = playing;
+    }, 10);
+  }
   // Handling arrow keys
   let i = 1;
   const cards = document.getElementsByClassName("acard");
   document.addEventListener("keydown", (e) => {
-    const code = e.key;
-    if (e.code == "ArrowRight") {
-      if (i < cards.length) {
-        i++;
+    if (instrument === "") {
+      if (e.code == "ArrowRight") {
+        if (i < cards.length) {
+          i++;
+        }
       }
-    }
-    if (e.code == "ArrowLeft") {
-      if (i > 1) {
-        i--;
+      if (e.code == "ArrowLeft") {
+        if (i > 1) {
+          i--;
+        }
       }
+      //@ts-ignore
+      cards[i - 1].focus();
     }
-    //@ts-ignore
-    cards[i - 1].focus();
   });
   // Stop handling arrow keys
 </script>
@@ -124,7 +150,7 @@
       {/each}
     </section>
   {:else if response.loops.length === 0}
-    <p>Loading...</p>
+    <p class="text-white m-10">Loading...</p>
   {:else}
     <h1
       class="mb-4 text-4xl font-extrabold leading-none tracking-tight md:text-5xl lg:text-6xl text-white"
@@ -148,7 +174,6 @@
           <th id="tempo" scope="col" class="py-3 px-4">Tempo</th>
           <th id="type" scope="col" class="py-3 px-4">Type</th>
           <th id="key" scope="col" class="py-3 px-4">Key</th>
-          <th scope="col" class="py-3 px-4">Download</th>
         </tr>
       </thead>
       <tbody>
@@ -170,10 +195,16 @@
                 // @ts-ignore
                 audio.play();
                 playing = loop._id;
+                lastplayed = loop._id;
+                //@ts-ignore
+                player = audio;
               } else {
                 // @ts-ignore
                 audio.pause();
                 playing = "";
+                setTimeout(() => {
+                  lastplayed = "";
+                }, 15000);
               }
             }}
             class={"border-neutral-700 " +
@@ -193,25 +224,71 @@
               >{loop.files.includes("mid") ? "Midi" : "Audio"}</td
             >
             <td class="py-4 px-6">{loop.key}</td>
-            <td class="py-4 px-6">
-              {#each loop.files as ft}
-                <a
-                  class="transition-all mr-2 bg-stone-700 px-1 rounded hover:shadow hover:outline-green-600 hover:outline hover:outline-1"
-                  on:click|preventDefault|stopPropagation={() => {
-                    // dl(loop._id + "." + ft, loop.instrument);
-                  }}
-                  href={"https://cdn.jsdelivr.net/gh/Jontes-Tech/floopr@latest/loops/" +
-                    loop.instrument +
-                    "/" +
-                    loop._id +
-                    "." +
-                    ft}>{ft}</a
-                >
-              {/each}
-            </td>
           </tr>
         {/each}
       </tbody>
     </table>
   {/if}
 </main>
+{#if lastplayed !== ""}
+  <div
+    in:slide={{ duration: 300 }}
+    out:slide={{ duration: 300 }}
+    class={"bg-neutral-800 p-4 bottom-0 left-0 w-full flex items-center justify-between fixed"}
+  >
+    <div class="flex items-center">
+      <img class="w-12 h-12 rounded-full" alt="" id="art" />
+      <div class="ml-4">
+        <p class="text-white font-bold">
+          {response.loops.find((loop) => loop._id === lastplayed)?.title || ""}
+        </p>
+        <p class="text-gray-400">
+          {response.loops.find((loop) => loop._id === lastplayed)?.author || ""}
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-x-5 fill-white">
+      <button
+        on:click={() => {
+          if (player.paused) {
+            player.play();
+            playing = lastplayed;
+          } else {
+            player.pause();
+            playing = "";
+          }
+        }}
+      >
+        {#if playing !== ""}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="1em"
+            viewBox="0 0 320 512"
+            ><path
+              d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z"
+            /></svg
+          >
+        {:else}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="1em"
+            viewBox="0 0 384 512"
+            ><path
+              d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"
+            /></svg
+          >
+        {/if}
+      </button>
+      <button>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          height="1em"
+          viewBox="0 0 512 512"
+          ><path
+            d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V274.7l-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7V32zM64 352c-35.3 0-64 28.7-64 64v32c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V416c0-35.3-28.7-64-64-64H346.5l-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352H64zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"
+          /></svg
+        >
+      </button>
+    </div>
+  </div>
+{/if}
