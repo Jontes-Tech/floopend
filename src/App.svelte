@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { randpix, RandpixColorScheme, Symmetry } from "randpix";
-  import { slide } from "svelte/transition";
+  import { scale, slide } from "svelte/transition";
   interface LoopResponse {
     limit: number;
     page: number;
@@ -54,14 +54,13 @@
 
   $: if (playing !== "") {
     const generate = randpix({
-      colorScheme: RandpixColorScheme.DARKULA, // Color theme (default: NEUTRAL)
-      size: 8, // Art size. Recommended 7 or 8 (odd/even symmetry) (default: 8)
-      scale: 32, // Pixel scale (default: 1)
-      symmetry: Symmetry.VERTICAL, // Symmetry (default: VERTICAL)
-      color: [255, 100, 50], // [R, G, B] like color for solid art (default: undefined),
-      seed: playing, // Seed (default: undefined)
-      colorBias: 15, // Slightly changes the color hue, which adds more color to the image (default: undefined)
-      grayscaleBias: false, // Change only the brightness of the color instead of the hue (default: undefined)
+      size: 8,
+      scale: 32,
+      symmetry: Symmetry.VERTICAL,
+      color: [255, 100, 50],
+      seed: playing,
+      colorBias: 15,
+      grayscaleBias: false,
     });
 
     const art = generate(); // Generating the pixel art
@@ -92,6 +91,32 @@
     }
   });
   // Stop handling arrow keys
+  let download = [];
+
+  const download2Blob = (extension: string) => {
+    fetch("http://localhost:3000/v1/loops/" + lastplayed + "." + extension)
+      .then((response) => response.blob())
+      .then((blob) => {
+        // Do something with the downloaded file blob
+        console.log("File downloaded successfully", blob);
+        // Create a link element
+        const link = document.createElement("a");
+        link.href = window.URL.createObjectURL(blob);
+        link.download =
+          "floopr.org-" +
+          response.loops.find((loop) => loop._id === lastplayed)?.name +
+          "." +
+          extension;
+
+        // Programmatically click the link to trigger the download
+        link.click();
+        download = [];
+      })
+      .catch((error) => {
+        console.error("Error downloading file", error);
+        alert("Error downloading file, check console for more details");
+      });
+  };
 </script>
 
 <main class="m-6">
@@ -188,10 +213,42 @@
             {/if}
           {/each}
           <tr
+            tabindex="0"
+            on:keydown={(e) => {
+              if (e.code == "Enter" || e.code == "Space") {
+                const audio = document.getElementById(
+                  "audioplayer-" + loop._id
+                );
+                // @ts-ignore
+                if (audio.paused) {
+                  document.querySelectorAll("audio").forEach((a) => {
+                    a.pause();
+                  });
+                  // @ts-ignore
+                  audio.play();
+                  playing = loop._id;
+                  lastplayed = loop._id;
+                  //@ts-ignore
+                  player = audio;
+                } else {
+                  // @ts-ignore
+                  audio.pause();
+                  playing = "";
+                  setTimeout(() => {
+                    if (playing === "" && lastplayed === loop._id) {
+                      lastplayed = "";
+                    }
+                  }, 15000);
+                }
+              }
+            }}
             on:click|stopPropagation={() => {
               const audio = document.getElementById("audioplayer-" + loop._id);
               // @ts-ignore
               if (audio.paused) {
+                document.querySelectorAll("audio").forEach((a) => {
+                  a.pause();
+                });
                 // @ts-ignore
                 audio.play();
                 playing = loop._id;
@@ -203,7 +260,9 @@
                 audio.pause();
                 playing = "";
                 setTimeout(() => {
-                  lastplayed = "";
+                  if (playing === "" && lastplayed === loop._id) {
+                    lastplayed = "";
+                  }
                 }, 15000);
               }
             }}
@@ -234,10 +293,14 @@
   <div
     in:slide={{ duration: 300 }}
     out:slide={{ duration: 300 }}
-    class={"bg-neutral-800 p-4 bottom-0 left-0 w-full flex items-center justify-between fixed"}
+    class="bg-neutral-800 p-4 bottom-0 left-0 w-full flex items-center justify-between fixed shadow-lg"
   >
     <div class="flex items-center">
-      <img class="w-12 h-12 rounded-full" alt="" id="art" />
+      <img
+        class="w-12 h-12 rounded-full hue-rotate-60"
+        alt="Decorational randomart"
+        id="art"
+      />
       <div class="ml-4">
         <p class="text-white font-bold">
           {response.loops.find((loop) => loop._id === lastplayed)?.title || ""}
@@ -279,7 +342,13 @@
           >
         {/if}
       </button>
-      <button>
+      <button
+        on:click={() => {
+          download = response.loops.find(
+            (loop) => loop._id === lastplayed
+          )?.files;
+        }}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           height="1em"
@@ -289,6 +358,63 @@
           /></svg
         >
       </button>
+    </div>
+  </div>
+{/if}
+{#if download.length > 0}
+  <div
+    in:scale={{ duration: 300 }}
+    out:scale={{ duration: 300 }}
+    class="fixed inset-0 flex items-center justify-center z-50"
+  >
+    <div class="bg-neutral-800 p-6 w-full max-w-md mx-auto rounded shadow-lg">
+      <h2 class="text-xl font-semibold mb-4 text-white">Floopr Download</h2>
+      <p class="mb-4 text-gray-200">Download brought to you by V3XLabs</p>
+      <div class="grid grid-cols-2 gap-4">
+        {#if download.includes("mp3")}
+          <button
+            on:click={() => {
+              download2Blob("mp3");
+            }}
+            class="hover:brightness-110 bg-green-800 text-white p-4 rounded"
+          >
+            <div class="text-xl font-bold">MP3</div>
+            <div class="text-sm">
+              Compressed and small size, great for sharing
+            </div>
+          </button>
+        {/if}
+        {#if download.includes("wav")}
+          <button
+            on:click={() => {
+              download2Blob("wav");
+            }}
+            class="hover:brightness-110 bg-green-800 text-white p-4 rounded"
+          >
+            <div class="text-xl font-bold">Wav</div>
+            <div class="text-sm">Uncompressed giant files, better quality</div>
+          </button>
+        {/if}
+        {#if download.includes("mid")}
+          <button
+            on:click={() => {
+              download2Blob("mid");
+            }}
+            class="hover:brightness-110 bg-green-800 text-white p-4 rounded"
+          >
+            <div class="text-xl font-bold">Midi</div>
+            <div class="text-sm">Just the notes, nothing else.</div>
+          </button>
+        {/if}
+      </div>
+      <div class="text-right mt-4">
+        <button
+          on:click={() => {
+            download = [];
+          }}
+          class="text-white bg-neutral-900 px-4 py-2 rounded">Cancel</button
+        >
+      </div>
     </div>
   </div>
 {/if}
