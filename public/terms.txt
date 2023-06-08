@@ -1,0 +1,10 @@
+By submitting to Floopr, you agree to these terms.
+
+1. All the sounds uploaded to Floopr shall be licensed under CC0, and shall be considered public domain and free to use.
+2. The sounds you upload must be entirely your own work. They shall not, for example be a sampled part of some other person's work.
+3. In the case that you are not the creator of the sound, you must receive explicit permission by the creator to upload it Floopr.
+4. In the case you are a co-creator of the sound you must have explicit permission by the other creators to upload it to Floopr.
+5. Any sound in violation of the terms may be removed without notice.
+6. Any legal actions caused by a misuse of the service (as stated above) shall be directed towards the person contributing to Floopr and not the maintainers of Floopr.
+7. Floopr is not a legal entity, and as such we cannot provide you with any legal advice. If you are unsure about the legality of your contribution, please consult a lawyer.
+8. In the event of regular browsing, we (like almost all other web servers) log IP adresses. These are flushed regularly. When contributing however, your email and IP adress are stored in a database. They are almost always deleted right after acceptal or denial.

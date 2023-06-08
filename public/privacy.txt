@@ -1,0 +1,14 @@
+We are internet privacy advocates. Therefore we track our users in the smallest way possible. 
+
+We do not use cookies, and neither do we use Google Analytics, but we do use a self-hosted analytics software called Plausible. This is hosted in Germany.
+You can rest assured that we do not track you in any way that could be used to identify you. If you do not believe us, you may visit https://stats.jontes.page/floopr.org to see for yourself.
+
+We do keep logs of the IP addresses of all users, but we do not use them for anything other than to prevent abuse of our services. We flush these logs regularly.
+
+Our website is hosted in Germany on Edgeserver by V3X Labs. They run their own webserver software, which is open source and can be found at https://github.com/v3xlabs/Edgeserver. We do not have access to these logs.
+
+The backend is running custom softare by me (https://github.com/Jontes-Tech/floopr-api) behind Nginx on a server in Germany.
+
+Thank you for trusting us, and we hope you enjoy our FLOSS services.
+
+// Jonte and the rest of the Floopr team
