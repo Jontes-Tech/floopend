@@ -17,7 +17,7 @@
   $: activeItem = items.find((item) => item._id === active);
 
   const approve = () => {
-    fetch("http://localhost:3000/v1/approve/"+activeItem._id, {
+    fetch("http://localhost:3000/v1/approve/", {
       method: "POST",
       headers: {
         Authorization: token,

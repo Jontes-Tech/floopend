@@ -1,6 +1,13 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 dependencies:
+  '@zerodevx/svelte-toast':
+    specifier: ^0.9.3
+    version: 0.9.3(svelte@3.58.0)
   randpix:
     specifier: ^1.1.1
     version: 1.1.1
@@ -312,6 +319,14 @@ packages:
   /@types/pug@2.0.6:
     resolution: {integrity: sha512-SnHmG9wN1UVmagJOnyo/qkk0Z7gejYxOYYmaAwr5u2yFYfsupN3sg10kyzN8Hep/2zbHxCnsumxOoRIRMBwKCg==}
     dev: true
+
+  /@zerodevx/svelte-toast@0.9.3(svelte@3.58.0):
+    resolution: {integrity: sha512-VPKWR4A9y01fyXRscu9HiTj7tV2hFrpRKZvGwMmaPXfHIXR1D9+NNsz0HXcQ7qZ0C5UaHS3n9uNtPtIcAXT7RQ==}
+    peerDependencies:
+      svelte: ^3.57.0
+    dependencies:
+      svelte: 3.58.0
+    dev: false
 
   /abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}

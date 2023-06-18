@@ -3,6 +3,7 @@
   import { scale, slide } from "svelte/transition";
   import { instrument } from "./stores";
   import { onMount } from "svelte";
+  import { toast } from "@zerodevx/svelte-toast";
   interface LoopResponse {
     limit: number;
     page: number;
@@ -44,6 +45,7 @@
   let playing = "";
   let lastplayed = "";
   let player: HTMLAudioElement;
+  let dataURL = "";
 
   // On back button press
   window.onpopstate = () => {
@@ -65,7 +67,7 @@
     });
 
     const art = generate(); // Generating the pixel art
-    const dataURL = art.toDataURL();
+    dataURL = art.toDataURL();
     setTimeout(() => {
       const img = document.getElementById("art") as HTMLImageElement;
       img.src = dataURL;
@@ -84,15 +86,15 @@
         const link = document.createElement("a");
         link.href = window.URL.createObjectURL(blob);
         if (!lastplayed) lastplayed = playing;
-        link.download =
-          "floopr.org-" +
-          response.loops.find((loop) => loop._id === lastplayed)?.name +
-          "." +
-          extension;
+        const name = response.loops.find(
+          (loop) => loop._id === lastplayed
+        )?.name;
+        link.download = "floopr.org-" + +name + "." + extension;
 
         // Programmatically click the link to trigger the download
         link.click();
         download = [];
+        toast.push("Successfully downloaded " + name + "." + extension);
       })
       .catch((error) => {
         console.error("Error downloading file", error);
@@ -195,7 +197,7 @@
                 }, 15000);
               }
             }}
-            class={"border-neutral-700 " +
+            class={"border-1 border-b border-neutral-700 " +
               (playing === loop._id ? "bg-[#23352a]" : "bg-neutral-800")}
           >
             <th class="py-4 px-6 font-medium whitespace-nowrap text-white">
@@ -221,14 +223,10 @@
 {#if lastplayed !== ""}
   <div
     in:slide={{ duration: 300 }}
-    class="bg-neutral-800 p-4 bottom-0 left-0 w-full flex items-center justify-between fixed shadow-lg"
+    class="bg-neutral-800 p-4 bottom-0 left-0 w-full flex items-center justify-between fixed shadow-lg border-t border-1 border-neutral-400"
   >
     <div class="flex items-center">
-      <img
-        class="w-12 h-12 rounded-full hue-rotate-60"
-        alt="Decorational randomart"
-        id="art"
-      />
+      <img class="w-12 h-12 rounded-full hue-rotate-60" alt="" id="art" />
       <div class="ml-4">
         <p class="text-white font-bold">
           {response.loops.find((loop) => loop._id === lastplayed)?.title || ""}

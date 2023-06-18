@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "../main";
-
   let instruments = [];
   onMount(async () => {
     const res = await fetch("http://localhost:3000/v1/instruments");
@@ -19,7 +18,7 @@
   <p class="text-lg font-normal lg:text-xl text-gray-400">
     To get started, select an instrument.
   </p>
-  <section class="basic-grid">
+  <section class="flex flex-wrap gap-4">
     {#each instruments as inst}
       <button
         class="inline-block bg-green-900 hover:shadow-md hover:scale-105 h-[145px] w-[290px] transition-all uppercase font-bold"
@@ -37,11 +36,6 @@
   </section>
 
   <style>
-    .basic-grid {
-      display: grid;
-      gap: 3rem;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    }
     .card {
       gap: 1rem;
       justify-content: center;

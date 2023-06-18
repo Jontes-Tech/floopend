@@ -1,4 +1,6 @@
 <script>
+  import { toast } from "@zerodevx/svelte-toast";
+
   let tos = false;
 </script>
 
@@ -12,6 +14,9 @@
     method="POST"
     enctype="multipart/form-data"
     action="http://localhost:3000/v1/upload"
+    on:submit={() => {
+      toast.push("Thank you for your contribution!");
+    }}
   >
     <button type="reset" class="text-red-500">Clear</button>
     <label for="submissionEmail" class="block text-sm font-medium text-white"
@@ -38,14 +43,14 @@
       placeholder="Never Gonna Give You Up"
     />
     <label for="creator" class="block text-sm font-medium text-white"
-      >Creator (your chosen username)</label
+      >Creator</label
     >
     <input
       type="text"
       required
       name="author"
       class="w-64 border text-sm rounded-lg block p-2.5 bg-neutral-700 border-neutral-600 placeholder-neutral-400 text-white focus:ring-darkGreen focus:border-darkGreen"
-      placeholder={'"Rick Astley", "John Doe"'}
+      placeholder="Rick Astley"
     />
     <label for="tempo" class="block text-sm font-medium text-white"
       >Tempo of the loop (in BPM, if unsure, select 0)</label
