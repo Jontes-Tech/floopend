@@ -23,6 +23,9 @@
       <button
         class="inline-block bg-green-900 hover:shadow-md hover:scale-105 h-[145px] w-[290px] transition-all uppercase font-bold"
         on:click={() => {
+          if (!localStorage.getItem("prefers-silence")) {
+            new Audio("https://cdn.jsdelivr.net/gh/hainguyents13/mechvibes@bbdbf0f872ee990850b4c20c7901ebb4cb47b9e2/src/audio/nk-cream/a.wav").play();
+          }
           goto("/browse?instrument=" + inst);
         }}
       >
@@ -34,7 +37,6 @@
       </button>
     {/each}
   </section>
-
   <style>
     .card {
       gap: 1rem;

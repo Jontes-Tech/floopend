@@ -1,7 +1,15 @@
-<script>
+<script lang="ts">
   import { toast } from "@zerodevx/svelte-toast";
+  import Turnstile from "./Turnstile.svelte";
 
   let tos = false;
+  let captcha = false;
+
+  function onloadTurnstileCallback() {
+    captcha = true;
+  }
+
+  let reset: () => void | undefined;
 </script>
 
 <main class="m-6">
@@ -14,11 +22,31 @@
     method="POST"
     enctype="multipart/form-data"
     action="http://localhost:3000/v1/upload"
-    on:submit={() => {
-      toast.push("Thank you for your contribution!");
+    on:submit|preventDefault={() => {
+      toast.push("Uploading your loop...");
+
+      // Post as multipart/form-data to the API
+      const form = document.querySelector("form");
+      const formData = new FormData(form);
+
+      fetch("http://localhost:3000/v1/upload", {
+        method: "POST",
+        body: formData,
+      })
+        .then((res) => res.json())
+        .then((res) => {
+          if (res.success) {
+            toast.push("Thank you for your contribution!");
+          } else {
+            toast.push(res.message || "There was an error uploading your loop.");
+          }
+        })
+        .catch((err) => {
+          toast.push("There was an error uploading your loop.");
+        });
     }}
   >
-    <button type="reset" class="text-red-500">Clear</button>
+    <button type="reset" on:click={reset} class="text-red-500">Clear</button>
     <label for="submissionEmail" class="block text-sm font-medium text-white"
       >Your email</label
     >
@@ -145,7 +173,9 @@
       class="p-2 block w-full text-sm rounded-lg border cursor-pointer text-neutral-400 focus:outline-none bg-neutral-700 border-neutral-600"
       type="file"
     />
-    <div class="cf-turnstile my-4" data-sitekey="0x4AAAAAAACTyQUMezKXzh3x" />
+    <div class="my-2">
+    <Turnstile bind:reset/>
+  </div>
     <div class="flex items-start mb-6">
       <div class="flex items-center h-5">
         <input
@@ -178,8 +208,4 @@
       Upload to Floopr.org
     </button>
   </form>
-  <script
-    src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-    defer
-  ></script>
 </main>

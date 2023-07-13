@@ -1,5 +1,6 @@
 <script>
   import { toast } from "@zerodevx/svelte-toast";
+  import Turnstile from "./Turnstile.svelte";
 </script>
 
 <!-- Centered contact form, posting JSON data to the backend -->
@@ -81,7 +82,7 @@
           placeholder="Leave a comment..."
         />
       </div>
-      <div class="cf-turnstile my-4" data-sitekey="0x4AAAAAAACTyQUMezKXzh3x" />
+      <Turnstile/>
       <button
         type="submit"
         class="py-3 px-5 text-sm font-medium text-center text-white rounded-lg sm:w-fit focus:ring-4 focus:outline-none bg-green-600 hover:bg-green-700 focus:ring-green-800"
@@ -89,8 +90,4 @@
       >
     </form>
   </div>
-  <script
-    src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-    defer
-  ></script>
 </section>

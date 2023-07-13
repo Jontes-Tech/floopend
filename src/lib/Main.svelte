@@ -2,7 +2,7 @@
   import { randpix, Symmetry } from "randpix";
   import { scale, slide } from "svelte/transition";
   import { instrument } from "./stores";
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { toast } from "@zerodevx/svelte-toast";
   interface LoopResponse {
     limit: number;
@@ -34,18 +34,29 @@
     instrument.set(inst);
   }
 
+  import {goto} from "../main";
+  let loaded = false;
+
   onMount(async () => {
     fetch("http://localhost:3000/v1/loops?instrument=" + $instrument)
       .then((res) => res.json())
       .then((res) => {
         response = res;
+        loaded = true;
+        if (response.loops.length === 0) {
+          toast.push("No loops found matching your search");
+          goto("/");
+        }
       });
   });
 
   let playing = "";
   let lastplayed = "";
-  let player: HTMLAudioElement;
   let dataURL = "";
+
+  onDestroy(() => {
+    if (audioplayer) audioplayer.pause();
+  });
 
   // On back button press
   window.onpopstate = () => {
@@ -75,6 +86,39 @@
     }, 10);
   }
   let download = [];
+  let audioplayer = new Audio();
+  const play = async(loop: any) => {
+    if (playing === loop._id) {
+      audioplayer.src = ""
+      playing = "";
+      return
+    }
+    fetch("http://localhost:3000/v1/loops/" + loop._id + ".mp3")
+      .then((response) => response.blob())
+      .then((blob) => {
+        // Do something with the downloaded file blob
+        console.log("File downloaded successfully", blob);
+        playing = loop._id;
+        lastplayed = loop._id;
+        // Create a player playing the downloaded file
+        if (audioplayer.paused || audioplayer.src === "") audioplayer = new Audio();
+        else {
+          audioplayer.pause();
+          audioplayer.currentTime = 0;
+        }
+        audioplayer.src = window.URL.createObjectURL(blob);
+        audioplayer.loop = true;
+        audioplayer.play();
+        toast.push("Playing " + loop.name + ".mp3");
+      })
+      .catch((error) => {
+        playing = "";
+        lastplayed = "";
+        audioplayer.src = "";
+        console.error("Error downloading file", error);
+        alert("Error downloading file, check console for more details");
+      });
+  };
 
   const download2Blob = (extension: string) => {
     fetch("http://localhost:3000/v1/loops/" + lastplayed + "." + extension)
@@ -89,7 +133,7 @@
         const name = response.loops.find(
           (loop) => loop._id === lastplayed
         )?.name;
-        link.download = "floopr.org-" + +name + "." + extension;
+        link.download = "floopr.org-" + name + "." + extension;
 
         // Programmatically click the link to trigger the download
         link.click();
@@ -104,7 +148,7 @@
 </script>
 
 <main class="m-6">
-  {#if response.loops.length === 0}
+  {#if !loaded}
     <p class="text-white m-10">Loading...</p>
   {:else}
     <h1
@@ -119,7 +163,9 @@
       We have {response.totalLoops} loop{response.totalLoops === 1 ? "" : "s"} matching
       your selection.
     </p>
-    <table class="w-full text-sm text-left text-stone-400 bg-neutral-900">
+    <table
+      class="w-full text-sm text-left text-stone-400 bg-neutral-900 rounded"
+    >
       <thead class="text-xs bg-neutral-700 text-stone-400">
         <tr>
           <th id="title" scope="col" class="py-3 px-4">Title</th>
@@ -134,69 +180,8 @@
       </thead>
       <tbody>
         {#each response.loops as loop}
-          {#each loop.files as ft}
-            {#if ft === "mp3" || ft === "wav" || ft === "ogg"}
-              <audio
-                id={"audioplayer-" + loop._id}
-                loop
-                src={"http://localhost:3000/v1/loops/" + loop._id + "." + ft}
-              />
-            {/if}
-          {/each}
           <tr
-            tabindex="0"
-            on:keydown={(e) => {
-              if (e.code == "Enter" || e.code == "Space") {
-                const audio = document.getElementById(
-                  "audioplayer-" + loop._id
-                );
-                // @ts-ignore
-                if (audio.paused) {
-                  document.querySelectorAll("audio").forEach((a) => {
-                    a.pause();
-                  });
-                  // @ts-ignore
-                  audio.play();
-                  playing = loop._id;
-                  lastplayed = loop._id;
-                  //@ts-ignore
-                  player = audio;
-                } else {
-                  // @ts-ignore
-                  audio.pause();
-                  playing = "";
-                  setTimeout(() => {
-                    if (playing === "" && lastplayed === loop._id) {
-                      lastplayed = "";
-                    }
-                  }, 15000);
-                }
-              }
-            }}
-            on:click|stopPropagation={() => {
-              const audio = document.getElementById("audioplayer-" + loop._id);
-              // @ts-ignore
-              if (audio.paused) {
-                document.querySelectorAll("audio").forEach((a) => {
-                  a.pause();
-                });
-                // @ts-ignore
-                audio.play();
-                playing = loop._id;
-                lastplayed = loop._id;
-                //@ts-ignore
-                player = audio;
-              } else {
-                // @ts-ignore
-                audio.pause();
-                playing = "";
-                setTimeout(() => {
-                  if (playing === "" && lastplayed === loop._id) {
-                    lastplayed = "";
-                  }
-                }, 15000);
-              }
-            }}
+            on:click={() => play(loop)}
             class={"border-1 border-b border-neutral-700 " +
               (playing === loop._id ? "bg-[#23352a]" : "bg-neutral-800")}
           >
@@ -223,7 +208,7 @@
 {#if lastplayed !== ""}
   <div
     in:slide={{ duration: 300 }}
-    class="bg-neutral-800 p-4 bottom-0 left-0 w-full flex items-center justify-between fixed shadow-lg border-t border-1 border-neutral-400"
+    class="bg-stone-800 p-4 bottom-0 left-0 w-full flex items-center justify-between fixed shadow-lg"
   >
     <div class="flex items-center">
       <img class="w-12 h-12 rounded-full hue-rotate-60" alt="" id="art" />
@@ -239,11 +224,11 @@
     <div class="flex items-center gap-x-5 fill-white">
       <button
         on:click={() => {
-          if (player.paused) {
-            player.play();
+          if (audioplayer.paused) {
+            audioplayer.play();
             playing = lastplayed;
           } else {
-            player.pause();
+            audioplayer.pause();
             playing = "";
           }
         }}
@@ -302,7 +287,7 @@
             on:click={() => {
               download2Blob("mp3");
             }}
-            class="hover:brightness-110 bg-green-800 text-white p-4 rounded"
+            class="hover:brightness-110 bg-green-800 text-white p-4 rounded hover:translate-y-[-2px] dlbutton transition-all"
           >
             <div class="text-xl font-bold">MP3</div>
             <div class="text-sm">
@@ -315,10 +300,12 @@
             on:click={() => {
               download2Blob("wav");
             }}
-            class="hover:brightness-110 bg-green-800 text-white p-4 rounded"
+            class="hover:brightness-110 bg-green-800 text-white p-4 rounded hover:translate-y-[-2px] dlbutton transition-all"
           >
             <div class="text-xl font-bold">Wav</div>
-            <div class="text-sm">Uncompressed giant files, better quality</div>
+            <div class="text-sm">
+              Uncompressed giant files, somewhat superior quality
+            </div>
           </button>
         {/if}
         {#if download.includes("mid")}
@@ -326,7 +313,7 @@
             on:click={() => {
               download2Blob("mid");
             }}
-            class="hover:brightness-110 bg-green-800 text-white p-4 rounded"
+            class="hover:brightness-110 bg-green-800 text-white p-4 rounded hover:translate-y-[-2px] dlbutton transition-all"
           >
             <div class="text-xl font-bold">Midi</div>
             <div class="text-sm">Just the notes, nothing else.</div>
@@ -344,3 +331,9 @@
     </div>
   </div>
 {/if}
+
+<style>
+  .dlbutton:hover {
+    box-shadow: 0 5px 0 #14532d;
+  }
+</style>

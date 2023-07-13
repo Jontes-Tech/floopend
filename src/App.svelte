@@ -22,8 +22,8 @@
   }
 </script>
 
-<div class="bg-neutral-800 flex flex-row gap-x-4 text-white px-4">
-  <p class="font-bold text-green-400">Floopr</p>
+<div class="bg-stone-800 flex flex-row gap-x-4 text-white px-4">
+  <img class="h-6 w-auto block" src="/img/floopr-static.svg" alt="Floopr">
   <a
     class="hover:underline hover:text-green-400"
     href="/"
