@@ -1,9 +1,9 @@
 <script>
-  import {get} from "svelte/store";
-  import {server} from "./stores";
+  import { get } from "svelte/store";
+  import { server } from "./stores";
   let token = localStorage.getItem("supersecrettoken");
   let items = [];
-  fetch(get(server).host+"/v1/submissions", {
+  fetch(get(server).host + "/v1/submissions", {
     headers: {
       Authorization: token,
     },
@@ -16,34 +16,42 @@
 
   let active = "never-gonna-give-you-up";
   let activeItem;
-  $: activeItem = items.find((item) => item._id === active);
 
   const approve = () => {
-    fetch(get(server).host+"/v1/approve/", {
+    fetch(get(server).host + "/v1/approve/", {
       method: "POST",
       headers: {
         Authorization: token,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        _id: activeItem._id,
-        title: activeItem.title,
-        tempo: activeItem.tempo,
-        key: activeItem.key,
-        instrument: activeItem.instrument,
-        timesig: activeItem.timesig,
+        // @ts-ignore
+        _id: active,
+        // @ts-ignore
+        title: document.querySelector("h1:nth-child(1)").innerText,
+        // @ts-ignore
+        tempo: document.querySelector("input[name=tempo]").value,
+        // @ts-ignore
+        key: document.querySelector("select[name=key]").value,
+        // @ts-ignore
+        instrument: document.querySelector("select[name=instrument]").value,
+        // @ts-ignore
+        timesig: document.querySelector("input[name=timesig]").value,
+        // @ts-ignore
         files: activeItem.files,
+        // @ts-ignore
         author: activeItem.author,
       }),
     }).then((response) => {
       if (response.status === 200) {
         items = items.filter((item) => item._id !== active);
         active = items[0]._id;
+        activeItem = items[0];
       }
     });
   };
   const reject = () => {
-    fetch(get(server).host+"/v1/"+activeItem._id, {
+    fetch(get(server).host + "/v1/" + activeItem._id, {
       method: "DELETE",
       headers: {
         Authorization: token,
@@ -52,11 +60,12 @@
       if (response.status === 200) {
         items = items.filter((item) => item._id !== active);
         active = items[0]._id;
+        activeItem = items[0];
       }
     });
   };
   const banandreject = () => {
-    fetch(get(server).host+"/v1/admin/ban/", {
+    fetch(get(server).host + "/v1/admin/ban/", {
       method: "DELETE",
       headers: {
         Authorization: token,
@@ -69,6 +78,7 @@
       if (response.status === 200) {
         items = items.filter((item) => item._id !== active);
         active = items[0]._id;
+        activeItem = items[0];
       }
     });
   };
@@ -88,6 +98,7 @@
             <button
               on:click={() => {
                 active = item._id;
+                activeItem = item;
               }}
               class="hover:brightness-110 flex items-center p-2 text-white rounded-lg {active ===
               item._id
@@ -109,7 +120,7 @@
     </aside>
     <main class="m-8 text-white">
       {#if active && activeItem}
-        <h1 class="text-4xl font-extrabold text-white">
+        <h1 class="text-4xl font-extrabold text-white" contenteditable>
           {activeItem.title}
         </h1>
         <p class="text-lg text-neutral-500">
@@ -119,37 +130,39 @@
         <form
           class="mt-4"
           on:submit|preventDefault={() => {
-            console.log("USER TRIED TO SUBMIT, BUT WE CAN'T");
+            console.log("This code shouldn't be able to be ran, but it was.");
           }}
         >
-          {#each activeItem.files as value}
-            <button
-              on:click|preventDefault={() => {
-                fetch(
-                  get(server).host+
-                  "/v1/submissions/" +
-                    activeItem._id +
-                    "." +
-                    value,
-                  {
-                    headers: {
-                      Authorization: token,
-                    },
-                  }
-                )
-                  .then((response) => response.blob())
-                  .then((blob) => {
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement("a");
-                    link.href = url;
-                    link.target = "_blank";
-                    link.click();
-                  });
-              }}
-              class="h-10 overflow-hidden mb-4 py-2.5 px-5 text-sm font-medium focus:outline-none rounded-full border focus:z-10 focus:ring-4 focus:ring-neutral-700 bg-neutral-800 text-neutral-400 border-neutral-600 hover:text-white hover:bg-neutral-700"
-              >{value.toUpperCase()}</button
-            >
-          {/each}
+          Be careful when downloading files, they are not scanned.<br />
+            {#each activeItem.files as value}
+              <button
+                on:click|preventDefault={() => {
+                  fetch(
+                    get(server).host +
+                      "/v1/submissions/" +
+                      activeItem._id +
+                      "." +
+                      value,
+                    {
+                      headers: {
+                        Authorization: token,
+                      },
+                    }
+                  )
+                    .then((response) => response.blob())
+                    .then((blob) => {
+                      const url = window.URL.createObjectURL(blob);
+                      const link = document.createElement("a");
+                      link.href = url;
+                      link.download = activeItem.title + "." + value;
+                      link.target = "_blank";
+                      link.click();
+                    });
+                }}
+                class="h-10 overflow-hidden mb-4 py-2.5 px-5 text-sm font-medium focus:outline-none rounded-full border focus:z-10 focus:ring-4 focus:ring-neutral-700 bg-neutral-800 text-neutral-400 border-neutral-600 hover:text-white hover:bg-neutral-700"
+                >{value.toUpperCase()}</button
+              >
+            {/each}
           <label for="tempo" class="block text-sm font-medium text-white"
             >Tempo</label
           >
@@ -161,18 +174,6 @@
             class="w-64 mb-4 border text-sm rounded-lg block p-2.5 bg-neutral-700 border-neutral-600 placeholder-neutral-400 text-white focus:ring-darkGreen focus:border-darkGreen"
             value={activeItem.tempo}
           />
-          <div class="mb-6">
-            <label for="title" class="block text-sm font-medium text-white"
-              >Title</label
-            >
-            <input
-              name="title"
-              id="title"
-              class="border text-sm rounded-lg block w-full p-2.5 bg-neutral-700 border-neutral-600 placeholder-neutral-400 text-white focus:ring-blue-500 focus:border-blue-500"
-              value={activeItem.title}
-              required
-            />
-          </div>
           <div class="mb-6">
             <label for="timesig" class="block text-sm font-medium text-white"
               >Time Signature</label

@@ -3,7 +3,7 @@ export const instrument = writable("");
 export const route = writable(window.location.pathname);
 
 export const server = writable({
-  host: "http://localhost:3000",
+  host: "https://v3x-eu.floopr.org",
   status: "unknown" as
     | "connected"
     | "connecting"

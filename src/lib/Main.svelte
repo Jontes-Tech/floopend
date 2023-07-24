@@ -35,7 +35,6 @@
     instrument.set(inst);
   }
 
-  import {goto} from "../main";
   let loaded = false;
 
   onMount(async () => {
@@ -46,7 +45,6 @@
         loaded = true;
         if (response.loops.length === 0) {
           toast.push("No loops found matching your search");
-          goto("/");
         }
       });
   });

@@ -1,6 +1,8 @@
 <script lang="ts">
   import { toast } from "@zerodevx/svelte-toast";
   import Turnstile from "./Turnstile.svelte";
+  import { server } from "./stores";
+  import { get } from "svelte/store";
 
   let tos = false;
   let captcha = false;
@@ -19,6 +21,9 @@
     heroes like you.
   </p>
   <form
+    method="post"
+    enctype="multipart/form-data"
+    action={get(server).host+"/v1/upload"}
     on:submit|preventDefault={() => {
       toast.push("Uploading your loop...");
 
