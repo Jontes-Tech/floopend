@@ -1,8 +1,9 @@
 <script lang="ts">
   import { randpix, Symmetry } from "randpix";
   import { scale, slide } from "svelte/transition";
-  import { instrument } from "./stores";
+  import { instrument, server } from "./stores";
   import { onMount, onDestroy } from "svelte";
+  import { get } from "svelte/store";
   import { toast } from "@zerodevx/svelte-toast";
   interface LoopResponse {
     limit: number;
@@ -38,7 +39,7 @@
   let loaded = false;
 
   onMount(async () => {
-    fetch("http://localhost:3000/v1/loops?instrument=" + $instrument)
+    fetch(get(server).host+"/v1/loops?instrument=" + $instrument)
       .then((res) => res.json())
       .then((res) => {
         response = res;
@@ -93,7 +94,7 @@
       playing = "";
       return
     }
-    fetch("http://localhost:3000/v1/loops/" + loop._id + ".mp3")
+    fetch(get(server).host+"/v1/loops/" + loop._id + ".mp3")
       .then((response) => response.blob())
       .then((blob) => {
         // Do something with the downloaded file blob
@@ -109,7 +110,6 @@
         audioplayer.src = window.URL.createObjectURL(blob);
         audioplayer.loop = true;
         audioplayer.play();
-        toast.push("Playing " + loop.name + ".mp3");
       })
       .catch((error) => {
         playing = "";
@@ -121,7 +121,7 @@
   };
 
   const download2Blob = (extension: string) => {
-    fetch("http://localhost:3000/v1/loops/" + lastplayed + "." + extension)
+    fetch(get(server).host+"/v1/loops/" + lastplayed + "." + extension)
       .then((response) => response.blob())
       .then((blob) => {
         // Do something with the downloaded file blob
@@ -203,6 +203,7 @@
         {/each}
       </tbody>
     </table>
+    <p class="text-neutral-400">Floopr, free as in freedom. <a href="https://creativecommons.org/share-your-work/public-domain/cc0" class="hover:underline">CC0 Licensing!</a></p>
   {/if}
 </main>
 {#if lastplayed !== ""}

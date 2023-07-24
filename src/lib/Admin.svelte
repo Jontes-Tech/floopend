@@ -1,7 +1,9 @@
 <script>
+  import {get} from "svelte/store";
+  import {server} from "./stores";
   let token = localStorage.getItem("supersecrettoken");
   let items = [];
-  fetch("http://localhost:3000/v1/submissions", {
+  fetch(get(server).host+"/v1/submissions", {
     headers: {
       Authorization: token,
     },
@@ -17,7 +19,7 @@
   $: activeItem = items.find((item) => item._id === active);
 
   const approve = () => {
-    fetch("http://localhost:3000/v1/approve/", {
+    fetch(get(server).host+"/v1/approve/", {
       method: "POST",
       headers: {
         Authorization: token,
@@ -41,7 +43,7 @@
     });
   };
   const reject = () => {
-    fetch("http://localhost:3000/v1/"+activeItem._id, {
+    fetch(get(server).host+"/v1/"+activeItem._id, {
       method: "DELETE",
       headers: {
         Authorization: token,
@@ -54,7 +56,7 @@
     });
   };
   const banandreject = () => {
-    fetch("http://localhost:3001/v1/admin/ban/", {
+    fetch(get(server).host+"/v1/admin/ban/", {
       method: "DELETE",
       headers: {
         Authorization: token,
@@ -124,7 +126,8 @@
             <button
               on:click|preventDefault={() => {
                 fetch(
-                  "http://localhost:3001/v1/submissions/" +
+                  get(server).host+
+                  "/v1/submissions/" +
                     activeItem._id +
                     "." +
                     value,

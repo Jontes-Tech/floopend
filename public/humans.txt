@@ -1,0 +1,4 @@
+Code by Jonatan "Jonte" Holmgren.
+Content by our contributors, Flooprs if you will.
+
+Ran by the Flooprs team, mostly on V3X Labs' cluster.

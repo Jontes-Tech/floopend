@@ -1,9 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "../main";
+  import { server } from "./stores";
+  import { get } from "svelte/store";
   let instruments = [];
   onMount(async () => {
-    const res = await fetch("http://localhost:3000/v1/instruments");
+    const res = await fetch(get(server).host+"/v1/instruments");
     instruments = await res.json();
   });
 </script>

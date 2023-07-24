@@ -1,6 +1,6 @@
 We are internet privacy advocates. Therefore we track our users in the smallest way possible. 
 
-We do not use cookies, and neither do we use Google Analytics, but we do use a self-hosted analytics software called Plausible. This is hosted in Germany.
+We do not use cookies, and neither do we use Google Analytics, but we do use a self-hosted analytics software called Plausible.
 You can rest assured that we do not track you in any way that could be used to identify you. If you do not believe us, you may visit https://stats.jontes.page/floopr.org to see for yourself.
 
 We do keep logs of the IP addresses of all users, but we do not use them for anything other than to prevent abuse of our services. We flush these logs regularly.

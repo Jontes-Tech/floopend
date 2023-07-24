@@ -2,7 +2,7 @@
   import Main from "./lib/Main.svelte";
   import Admin from "./lib/Admin.svelte";
   import Contribute from "./lib/Contribute.svelte";
-  import { route } from "./lib/stores";
+  import { route, server } from "./lib/stores";
   import { goto } from "./main";
   import { instrument } from "./lib/stores";
   import ChooseInstrument from "./lib/ChooseInstrument.svelte";
@@ -20,10 +20,26 @@
   if (instrument) {
     instrument.set(inst);
   }
+
+  server.subscribe(async (val) => {
+    if (val.status === "unknown") {
+      server.set({ ...val, status: "connecting" });
+      try {
+        const res = await fetch(val.host + "/v1/health");
+        if (!res.ok || res.status !== 200) {
+          server.set({ ...val, status: "error" });
+        } else {
+          server.set({ ...val, status: "connected" });
+        }
+      } catch (e) {
+        server.set({ ...val, status: "error" });
+      }
+    }
+  });
 </script>
 
 <div class="bg-stone-800 flex flex-row gap-x-4 text-white px-4">
-  <img class="h-6 w-auto block" src="/img/floopr-static.svg" alt="Floopr">
+  <img class="h-6 w-auto block" src="/img/floopr-static.svg" alt="Floopr" />
   <a
     class="hover:underline hover:text-green-400"
     href="/"
@@ -39,6 +55,7 @@
     }}>Contribute</a
   >
   <div class="flex-grow" />
+  <p title={$server.host}>Server {$server.status}</p>
   <a
     class="hover:underline hover:text-green-400"
     href="/contact"
@@ -48,7 +65,9 @@
   >
 </div>
 <SvelteToast />
-{#if $route === "/"}
+{#if $server.status === "error"}
+<p class="text-4xl text-center text-white font-bold">Server's down, Jonte messed up.</p>
+{:else if $route === "/"}
   <ChooseInstrument />
 {:else if $route.startsWith("/browse")}
   <Main />

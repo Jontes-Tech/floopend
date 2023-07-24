@@ -19,9 +19,6 @@
     heroes like you.
   </p>
   <form
-    method="POST"
-    enctype="multipart/form-data"
-    action="http://localhost:3000/v1/upload"
     on:submit|preventDefault={() => {
       toast.push("Uploading your loop...");
 
@@ -29,7 +26,7 @@
       const form = document.querySelector("form");
       const formData = new FormData(form);
 
-      fetch("http://localhost:3000/v1/upload", {
+      fetch(get(server).host+"/v1/upload", {
         method: "POST",
         body: formData,
       })

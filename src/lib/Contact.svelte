@@ -1,6 +1,8 @@
 <script>
   import { toast } from "@zerodevx/svelte-toast";
   import Turnstile from "./Turnstile.svelte";
+  import { server } from "./stores";
+  import { get } from "svelte/store";
 </script>
 
 <!-- Centered contact form, posting JSON data to the backend -->
@@ -19,7 +21,7 @@
       on:submit|preventDefault={async () => {
         const data = new FormData(document.querySelector("form"));
         const json = Object.fromEntries(data.entries());
-        const fetched = await fetch("http://localhost:3000/v1/contact", {
+        const fetched = await fetch(get(server).host+"/v1/contact", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(json),
