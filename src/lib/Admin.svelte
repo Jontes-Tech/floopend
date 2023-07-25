@@ -1,6 +1,6 @@
 <script>
   import { get } from "svelte/store";
-  import { server } from "./stores";
+  import { route, server } from "./stores";
   let token = localStorage.getItem("supersecrettoken");
   let items = [];
   fetch(get(server).host + "/v1/submissions", {
@@ -85,7 +85,7 @@
 </script>
 
 {#if token}
-  <h1 class="text-4xl text-white font-bold">Admin</h1>
+  <h1 class="text-4xl text-white font-bold">Admin <a class="text-sm" href="/admin/contacts">Contacts</a></h1>
   <div class="w-full h-full bg-neutral-950 flex rounded">
     <aside
       id="default-sidebar"
