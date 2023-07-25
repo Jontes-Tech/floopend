@@ -7,22 +7,9 @@
   if (!token) {
     route.set("/admin");
   } else {
-    // (async () => {
-    //   const res = await fetch("http://localhost:3000/v1/contacts", {
-    //     headers: {
-    //       Authorization: token,
-    //     },
-    //   });
-    //   if (res.ok) {
-    //     contacts = await res.json();
-    //   } else {
-    //     route.set("/admin");
-    //   }
-    // });
-    // Do this but using promises
-    fetch("http://localhost:3000/v1/contacts", {
+    fetch(get(server).host+"/v1/contacts", {
       headers: {
-        Authorization: token,
+        authorization: token,
       },
     })
       .then((res) => {
@@ -51,7 +38,7 @@
               "Do you want to delete this message? Cancel to not, OK to delete."
             )
           ) {
-            fetch("http://localhost:3000/v1/contacts/" + contact._id, {
+            fetch(get(server).host+"/v1/contacts/" + contact._id, {
               method: "DELETE",
               headers: {
                 Authorization: token,
