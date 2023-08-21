@@ -3,7 +3,7 @@ export const instrument = writable("");
 export const route = writable(window.location.pathname);
 
 export const server = writable({
-  host: "http://192.168.50.2:3087",
+  host: "https://api.floopr.org",
   status: "unknown" as
     | "connected"
     | "connecting"
